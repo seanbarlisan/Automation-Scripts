@@ -20,7 +20,7 @@ for folder, folders, files in os.walk(download_path):
         file_path = os.path.abspath(os.path.join(folder, file))
         
         # Send specific files to trash
-        if file.endswith('.exe') or file.endswith('.txt') or file.endswith('.msi'):
+        if file.endswith('.exe') or file.endswith('.txt') or file.endswith('.msi') or file.endswith('.pdf'):
             try:
                 print('Deleted file: ', file_path)
                 send2trash(file_path)
