@@ -47,4 +47,6 @@ if answer == "yes":
         winshell.recycle_bin().empty(confirm = False, show_progress=False, sound=True)
         print("Recycle Bin has been emptied!")
     except:
-        print("Recycle Bin is not emptied!")
+        print("There is an issue in the trash bin or it is already empty.")
+else:
+    print("We did not clear the trash bin!")
