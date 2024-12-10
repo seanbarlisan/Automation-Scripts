@@ -1,6 +1,8 @@
 from send2trash import send2trash
 import os
 import shutil
+import winshell
+import win32con
 
 download_path = "C:/Users/smbar/Downloads"
 
@@ -37,3 +39,12 @@ for folder, folders, files in os.walk(download_path):
 
 # Optional: Inform when script finishes
 print("Script finished checking files and directories.")
+
+answer = input("Would you like to clear the trash bin?\n")
+
+if answer == "yes":
+    try:
+        winshell.recycle_bin().empty(confirm = False, show_progress=False, sound=True)
+        print("Recycle Bin has been emptied!")
+    except:
+        print("Recycle Bin is not emptied!")
