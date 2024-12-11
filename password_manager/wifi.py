@@ -1,6 +1,6 @@
 import sqlite3 # SQL DB to store information rather than a dictionary
 import json # will use in future to store all information as JSON files for the SQL DB
-import cryptography # used to encrypt information on the device for usage
+from cryptography.fernet import Fernet # used to encrypt information on the device for usage
 
 class Credential:
     def __init__(self, username, password):
@@ -53,10 +53,14 @@ def edit_credential():
     credential_storage[edit_value] = input("What would you like your new password to be?")
     return
 
-def encrypt_credential():
-    return
+def encrypt_credential(password):
+    key = Fernet.generate_key()
+    fernet = Fernet(key)
+    encPassword = fernet.encrypt(password.encode())
+    return encPassword
 
-def decrypt_credential():
+def decrypt_credential(password): # how will we decrypt this password from function?
+    decPassword = fernet.decrypt(password.decode())
     return
 
 def main():
