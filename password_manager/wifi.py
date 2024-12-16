@@ -1,11 +1,37 @@
 import sqlite3 # SQL DB to store information rather than a dictionary
-import json # will use in future to store all information as JSON files for the SQL DB
+import os # needed to understand the DB location
 from cryptography.fernet import Fernet # used to encrypt information on the device for usage
 
+# Change the code ot implement a title alongside the username and password so we don't lose the infomration and mix up usernames and passwords
+
 credential_storage = dict()
-db_connection = sqlite3.Connection("credential_database.db")
+db_directory = "./password_manager/"
+db_path = os.path.abspath(os.path.join(db_directory, "credential_database.db"))
+db_connection = sqlite3.Connection(db_path)
 cur = db_connection.cursor()
-cur.execute("CREATE TABLE credential(username, password)")
+
+if os.path.isfile(db_path):
+    print("Database has been created already.")
+    print(f"Database path: {db_path}")
+
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='credential';")
+    table_exists = cur.fetchone()
+
+    if not table_exists:
+        # Table doesn't exist, create it
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS credential (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL
+            );
+        """)
+        print("Table 'credential' created.")
+    else:
+        print("Table 'credential' already exists.")
+else:
+    print(f"Database doesn't exist at {db_path}, creating new database.")
+    # Table creation will be handled later
 
 def create_credential():
     try:
@@ -20,8 +46,7 @@ def create_credential():
             if password == "exit":
                 return
         cur.execute("""
-            INSERT INTO credential VALUES
-                    (username, password) VALUES (?, ?)
+            INSERT INTO credential (username, password) VALUES (?, ?)
             """, (username, password))
         # Include encrypt option here
         db_connection.commit()
@@ -82,7 +107,7 @@ def edit_credential():
 
 def main():
     while True:
-        choice = input("What would you like to do?\n")
+        choice = input("What would you like to do?\n 1.) Create Credentials \n 2.) Delete Credentials \n 3.) View Credentials \n 4.) Edit Credentials")
         choice = choice.lower()
         match choice:
             case("1"):
