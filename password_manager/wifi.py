@@ -22,6 +22,7 @@ if os.path.isfile(db_path):
         cur.execute("""
             CREATE TABLE IF NOT EXISTS credential (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL UNIQUE,
                 username TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL
             );
@@ -35,6 +36,11 @@ else:
 
 def create_credential():
     try:
+        title = input("Please input the title of your credential:\n")
+        while title is None and title != "exit":
+            title = input("Please input a valid credential, otherwise, input exit")
+            if title == "exit":
+                return
         username = input("Please input your username:\n")
         while username is None and username != "exit":
             username = input("Please input a valid credential, otherwise, input exit")
@@ -46,8 +52,8 @@ def create_credential():
             if password == "exit":
                 return
         cur.execute("""
-            INSERT INTO credential (username, password) VALUES (?, ?)
-            """, (username, password))
+            INSERT INTO credential (title, username, password) VALUES (?, ?, ?)
+            """, (title, username, password))
         # Include encrypt option here
         db_connection.commit()
     except sqlite3.Error as e:
@@ -58,14 +64,14 @@ def create_credential():
 
 def delete_credential():
     try:
-        remove_username = input("What credential would you like to remove?\n")
-        while remove_username is None and remove_username != "exit":
-            remove_username = input("Please input a valid credential, otherwise, input exit\n")
-            if remove_username == "exit":
+        remove_title = input("What credential would you like to remove?\n")
+        while remove_title is None and remove_title != "exit":
+            remove_title = input("Please input a valid credential, otherwise, input exit\n")
+            if remove_title == "exit":
                 return
         cur.execute("""
             DELETE FROM credential WHERE username = ?;
-            """, (remove_username,))
+            """, (remove_title,))
         db_connection.commit()
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
@@ -80,13 +86,13 @@ def view_credential():
             if view_value == "exit":
                 return
         cur.execute("""
-            SELECT username, password FROM credentials WHERE username = ?;
+            SELECT title, username, password FROM credentials WHERE title = ?;
         """, (view_value,))
         row = cur.fetchone()
         if row:
             print(f"Username: {row[0]}, Password: {row[1]}")
         else:
-            print(f"No credentials found for username '{view_value}'.")
+            print(f"No credentials found for title '{view_value}'.")
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
         return None
@@ -107,7 +113,7 @@ def edit_credential():
 
 def main():
     while True:
-        choice = input("What would you like to do?\n 1.) Create Credentials \n 2.) Delete Credentials \n 3.) View Credentials \n 4.) Edit Credentials")
+        choice = input("What would you like to do?\n 1.) Create Credentials \n 2.) Delete Credentials \n 3.) View Credentials \n 4.) Edit Credentials\n")
         choice = choice.lower()
         match choice:
             case("1"):
@@ -119,6 +125,7 @@ def main():
             case("4"):
                 edit_credential()
             case("exit"):
+                print("Thank you!")
                 return
             case _:
                 print("Please input a option or type 'exit' to leave.\n")
