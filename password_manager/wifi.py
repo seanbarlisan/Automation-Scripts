@@ -2,8 +2,6 @@ import sqlite3 # SQL DB to store information rather than a dictionary
 import os # needed to understand the DB location
 from cryptography.fernet import Fernet # used to encrypt information on the device for usage
 
-# Change the code ot implement a title alongside the username and password so we don't lose the infomration and mix up usernames and passwords
-
 credential_storage = dict()
 db_directory = "./password_manager/"
 db_path = os.path.abspath(os.path.join(db_directory, "credential_database.db"))
@@ -77,8 +75,12 @@ def delete_credential():
         print(f"An error occurred: {e}")
     finally:
         db_connection.close()
+    return
 
 def view_credential():
+    new_con = sqlite3.connect(db_path)
+    new_cur = new_con.cursor()
+    res = new_cur.execute("SELECT title FROM credential") # This is how we will view the certain row we want
     try:
         view_value = input("What credential would you like to view?\n")
         while view_value is None and view_value != "exit":
@@ -99,6 +101,7 @@ def view_credential():
     finally:
         # Close the connection
         db_connection.close()
+    return
 
 def edit_credential():
     edit_value - input("What credential would you like to edit?\n")
