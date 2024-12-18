@@ -131,13 +131,43 @@ def edit_credential():
     else:
         for row in rows:
             print(row[0])
-    edit_value - input("What credential would you like to edit?\n")
+    edit_value = input("What credential would you like to edit?\n")
     while edit_value is None and edit_value != "exit":
         edit_value = input("Please input a valid credential, otherwise, input exit\n")
         if edit_value == "exit":
             return
-    credential_storage[edit_value] = input("What would you like your new password to be?\n")
+    #
+    new_cur.execute("""
+            SELECT title, username, password 
+            FROM credential 
+            WHERE title = ?;
+        """, (edit_value,))
+    # Fetch and display the results
+    result = new_cur.fetchall()
+    if not result:
+        print(f"No credentials found for title: {edit_value}")
+    else:
+        for row in result:
+            print(f"Title: {row[0]}, Username: {row[1]}, Password: {row[2]}")
+    new_username = input("What is the new username? If nothing, please insert 'next'\n")
+    if new_username.lower() == "next":
+        new_password = input("What is the new password? If nothing, please insert 'next'\n")
+        if new_password.lower() == "next":
+            return
+    else:
+        new_password = input("What is the new password? If nothing, please insert 'next'\n")
+        if new_password.lower() == "next":
+            return
+
+    new_cur.execute("""
+        UPDATE credential
+        SET username = ?, password = ?
+        WHERE title = ?;
+    """, (new_username, new_password, edit_value))
+
+    print("Credentials updated successfully!")
     return
+
 
 # Implement a function to encrypt and decrypt the password values we create, should use the fermet library
 
