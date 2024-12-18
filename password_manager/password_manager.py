@@ -3,7 +3,7 @@ import os # needed to understand the DB location
 from cryptography.fernet import Fernet # used to encrypt information on the device for usage
 
 credential_storage = dict()
-db_directory = "./password_manager/"
+db_directory = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.abspath(os.path.join(db_directory, "credential_database.db"))
 db_connection = sqlite3.Connection(db_path)
 cur = db_connection.cursor()
@@ -57,10 +57,20 @@ def create_credential():
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
     finally:
-        db_connection.close()
-    return 
+        return 
 
 def delete_credential():
+    new_con = sqlite3.connect(db_path)
+    new_cur = new_con.cursor()
+    new_cur.execute("SELECT title FROM credential") # This is how we will view the certain row we want
+    print("These are the listed credentials:")
+    rows = new_cur.fetchall()
+    if not rows:
+        print("The database is currently empty.")
+        return
+    else:
+        for row in rows:
+            print(row[0])
     try:
         remove_title = input("What credential would you like to remove?\n")
         while remove_title is None and remove_title != "exit":
@@ -68,19 +78,27 @@ def delete_credential():
             if remove_title == "exit":
                 return
         cur.execute("""
-            DELETE FROM credential WHERE username = ?;
+            DELETE FROM credential WHERE title = ?;
             """, (remove_title,))
+        print("The credential " + remove_title + " has been deleted\n")
         db_connection.commit()
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
     finally:
-        db_connection.close()
-    return
+        return
 
 def view_credential():
     new_con = sqlite3.connect(db_path)
     new_cur = new_con.cursor()
-    res = new_cur.execute("SELECT title FROM credential") # This is how we will view the certain row we want
+    new_cur.execute("SELECT title FROM credential") # This is how we will view the certain row we want
+    print("These are the listed credentials:")
+    rows = new_cur.fetchall()
+    if not rows:
+        print("The database is currently empty.")
+        return
+    else:
+        for row in rows:
+            print(row[0])
     try:
         view_value = input("What credential would you like to view?\n")
         while view_value is None and view_value != "exit":
@@ -88,22 +106,31 @@ def view_credential():
             if view_value == "exit":
                 return
         cur.execute("""
-            SELECT title, username, password FROM credentials WHERE title = ?;
+            SELECT title, username, password FROM credential WHERE title = ?;
         """, (view_value,))
         row = cur.fetchone()
         if row:
-            print(f"Username: {row[0]}, Password: {row[1]}")
+            print(f"Username: {row[1]}, Password: {row[2]}")
         else:
             print(f"No credentials found for title '{view_value}'.")
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
         return None
     finally:
-        # Close the connection
-        db_connection.close()
-    return
+        return
 
 def edit_credential():
+    new_con = sqlite3.connect(db_path)
+    new_cur = new_con.cursor()
+    new_cur.execute("SELECT title FROM credential") # This is how we will view the certain row we want
+    print("These are the listed credentials:")
+    rows = new_cur.fetchall()
+    if not rows:
+        print("The database is currently empty.")
+        return
+    else:
+        for row in rows:
+            print(row[0])
     edit_value - input("What credential would you like to edit?\n")
     while edit_value is None and edit_value != "exit":
         edit_value = input("Please input a valid credential, otherwise, input exit\n")
