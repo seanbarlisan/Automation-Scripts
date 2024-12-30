@@ -1,6 +1,7 @@
 import sqlite3 # SQL DB to store information rather than a dictionary
 import os # needed to understand the DB location
-import boto3 # used to store information in a SQL server in AWS
+import boto3 # used to get a secret from AWS and interact with our AWS servers
+from botocore.exceptions import ClientError
 import re # used for partial matching of the title if not fully typed out or atleast closely typed
 from cryptography.fernet import Fernet # used to encrypt information on the device for usage
 
@@ -11,6 +12,27 @@ db_directory = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.abspath(os.path.join(db_directory, "credential_database.db"))
 db_connection = sqlite3.Connection(db_path)
 cur = db_connection.cursor()
+
+def get_secret():
+
+    secret_name = "Leak_Lookup"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+
+    secret = get_secret_value_response['SecretString']
 
 if os.path.isfile(db_path):
     print("Database has been created already.")
@@ -172,12 +194,44 @@ def edit_credential():
     print("Credentials updated successfully!")
     return
 
+def check_breach():
+    new_con = sqlite3.connect(db_path)
+    new_cur = new_con.cursor()
+    new_cur.execute("SELECT title FROM credential") # This is how we will view the certain row we want
+    print("These are the listed credentials:")
+    rows = new_cur.fetchall()
+    if not rows:
+        print("The database is currently empty.")
+        return
+    else:
+        for row in rows:
+            print(row[0])
+    try:
+        view_value = input("What credential would you like to view if it has been breached?\n")
+        while view_value is None and view_value != "exit":
+            view_value = input("Please input a valid credential, otherwise, input exit\n")
+            if view_value == "exit":
+                return
+        cur.execute("""
+            SELECT title, username, password FROM credential WHERE title = ?;
+        """, (view_value,))
+        row = cur.fetchone()
+        if row:
+            print(f"Password: {row[2]}")
+        else:
+            print(f"No credentials found for title '{view_value}'.")
+        
+    # except sqlite3.Error as e:
+    #     print(f"An error occurred: {e}")
+    #     return None
+    # Is there a better way to do this?
 
-# Implement a function to encrypt and decrypt the password values we create, should use the fermet library
+    finally:
+        return
 
 def main():
     while True:
-        choice = input("What would you like to do?\n 1.) Create Credentials \n 2.) Delete Credentials \n 3.) View Credentials \n 4.) Edit Credentials\n 5.) Exit\n")
+        choice = input("What would you like to do?\n 1.) Create Credentials \n 2.) Delete Credentials \n 3.) View Credentials \n 4.) Edit Credentials\n 5.) Check for Breach \n 6.) Exit\n")
         choice = choice.lower()
         match choice:
             case("1"):
@@ -188,6 +242,11 @@ def main():
                 view_credential()
             case("4"):
                 edit_credential()
+            case("5"):
+                check_breach()
+            case("6"):
+                print("Thank you!")
+                return
             case("exit"):
                 print("Thank you!")
                 return
