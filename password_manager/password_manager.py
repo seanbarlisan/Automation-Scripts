@@ -4,6 +4,8 @@ import boto3 # used to get a secret from AWS and interact with our AWS servers
 from botocore.exceptions import ClientError
 import re # used for partial matching of the title if not fully typed out or atleast closely typed
 import http.client # used for connecting to Rapid API
+import json 
+import requests
 from cryptography.fernet import Fernet # used to encrypt information on the device for usage
 
 # Future goal is to add a new SQL service rather than use sqlite3
@@ -15,27 +17,41 @@ db_connection = sqlite3.Connection(db_path)
 cur = db_connection.cursor()
 
 def get_secret():
-
-    secret_name = "BreachDirectory"
-    region_name = "us-east-1"
+    secret_name = "BreachDirectory"  # The name of your secret in Secrets Manager
+    region_name = "us-east-1"  # The region where your secret is stored
 
     # Create a Secrets Manager client
     session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
-    )
+    client = session.client(service_name='secretsmanager', region_name=region_name)
 
     try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
-        )
+        # Get the secret value
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
         raise e
 
+    # Parse the secret (assuming it's stored as a JSON string)
     secret = get_secret_value_response['SecretString']
+    secret_dict = json.loads(secret)  # Convert the secret to a dictionary
+    return secret_dict
 
-    
+secret = get_secret()
+api_key = secret.get("x-rapidapi-key")
+api_host = secret.get("x-rapidapi-host")
+
+base_url = "https://breachdirectory.p.rapidapi.com/"
+email = "ajackson123444@gmail.com"
+endpoint = f"?func=auto&term={email}"
+url = base_url + endpoint
+
+headers = {
+    'x-rapidapi-key': api_key,
+    'x-rapidapi-host': api_host
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())  # Process the API response
+
 
 if os.path.isfile(db_path):
     print("Database has been created already.")
