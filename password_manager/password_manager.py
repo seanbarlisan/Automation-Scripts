@@ -3,6 +3,7 @@ import os # needed to understand the DB location
 import boto3 # used to get a secret from AWS and interact with our AWS servers
 from botocore.exceptions import ClientError
 import re # used for partial matching of the title if not fully typed out or atleast closely typed
+import http.client # used for connecting to Rapid API
 from cryptography.fernet import Fernet # used to encrypt information on the device for usage
 
 # Future goal is to add a new SQL service rather than use sqlite3
@@ -15,7 +16,7 @@ cur = db_connection.cursor()
 
 def get_secret():
 
-    secret_name = "Leak_Lookup"
+    secret_name = "BreachDirectory"
     region_name = "us-east-1"
 
     # Create a Secrets Manager client
@@ -33,6 +34,8 @@ def get_secret():
         raise e
 
     secret = get_secret_value_response['SecretString']
+
+    
 
 if os.path.isfile(db_path):
     print("Database has been created already.")
