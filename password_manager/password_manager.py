@@ -1,6 +1,10 @@
 import sqlite3 # SQL DB to store information rather than a dictionary
 import os # needed to understand the DB location
+import boto3 # used to store information in a SQL server in AWS
+import re # used for partial matching of the title if not fully typed out or atleast closely typed
 from cryptography.fernet import Fernet # used to encrypt information on the device for usage
+
+# Future goal is to add a new SQL service rather than use sqlite3
 
 credential_storage = dict()
 db_directory = os.path.dirname(os.path.abspath(__file__))
@@ -173,7 +177,7 @@ def edit_credential():
 
 def main():
     while True:
-        choice = input("What would you like to do?\n 1.) Create Credentials \n 2.) Delete Credentials \n 3.) View Credentials \n 4.) Edit Credentials\n")
+        choice = input("What would you like to do?\n 1.) Create Credentials \n 2.) Delete Credentials \n 3.) View Credentials \n 4.) Edit Credentials\n 5.) Exit\n")
         choice = choice.lower()
         match choice:
             case("1"):
@@ -194,3 +198,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# Look into why the Database becomes locked and broken

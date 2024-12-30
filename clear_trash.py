@@ -4,7 +4,7 @@ import shutil
 import winshell
 import win32con
 
-download_path = "C:/Users/smbar/Downloads"
+download_path = "C:/Users/smbar/Downloads" # Modify this to your specific directory that you wish to clear
 
 # Walk through the directory structure
 for folder, folders, files in os.walk(download_path):
